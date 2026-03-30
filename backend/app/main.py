@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import uuid
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_users import schemas as fu_schemas
-from fastapi_users.router import get_auth_router, get_register_router
 from sqlalchemy import select
 
 from .auth import auth_backend, fastapi_users
@@ -14,7 +15,7 @@ from .routers.applications import router as applications_router
 from .routers.statuses import router as statuses_router
 
 
-class UserRead(fu_schemas.BaseUser[str]):
+class UserRead(fu_schemas.BaseUser[uuid.UUID]):
     pass
 
 
@@ -32,8 +33,8 @@ app.add_middleware(
     allow_headers=["*"] ,
 )
 
-app.include_router(get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"])
-app.include_router(get_register_router(UserRead, UserCreate), prefix="/auth", tags=["auth"])
+app.include_router(fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"])
+app.include_router(fastapi_users.get_register_router(UserRead, UserCreate), prefix="/auth", tags=["auth"])
 
 app.include_router(statuses_router)
 app.include_router(applications_router)

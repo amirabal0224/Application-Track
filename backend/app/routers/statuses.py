@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import Select, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,14 +37,15 @@ async def create_status(
     return status
 
 
-@router.delete("/{status_id}", status_code=204)
+@router.delete("/{status_id}")
 async def delete_status(
     status_id: uuid.UUID,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
-) -> None:
+) -> Response:
     status = await session.get(Status, status_id)
     if status is None or status.user_id != user.id:
         raise HTTPException(status_code=404, detail="Status not found")
     await session.delete(status)
     await session.commit()
+    return Response(status_code=204)

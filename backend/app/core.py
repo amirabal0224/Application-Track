@@ -9,10 +9,10 @@ class Settings(BaseSettings):
     app_name: str = "application-tracker"
     environment: str = "dev"
 
-    database_url: str = "postgresql+asyncpg://app:app@localhost:5432/apptracker"
+    database_url: str = "sqlite+aiosqlite:///./apptracker.db"
     secret_key: str = "CHANGE_ME"
 
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://localhost:5174"
 
 
 settings = Settings()

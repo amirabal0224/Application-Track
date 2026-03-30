@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import Select, and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -86,14 +86,15 @@ async def patch_application(
     return app
 
 
-@router.delete("/{application_id}", status_code=204)
+@router.delete("/{application_id}")
 async def delete_application(
     application_id: uuid.UUID,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
-) -> None:
+) -> Response:
     app = await session.get(Application, application_id)
     if app is None or app.user_id != user.id:
         raise HTTPException(status_code=404, detail="Application not found")
     await session.delete(app)
     await session.commit()
+    return Response(status_code=204)

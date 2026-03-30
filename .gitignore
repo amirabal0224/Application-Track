@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+
+# Virtual/env dirs
+.venv/
+.conda/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# OS/Editor
+.DS_Store
+.vscode/
