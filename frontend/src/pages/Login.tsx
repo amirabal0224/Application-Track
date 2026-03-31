@@ -5,6 +5,8 @@ import { apiForm } from '../api'
 import { setToken } from '../auth'
 import type { TokenResponse } from '../types'
 
+const ENABLE_REGISTER = ((import.meta as any).env?.VITE_ENABLE_REGISTER ?? 'false') === 'true'
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -48,9 +50,11 @@ export default function LoginPage() {
         {error ? <div className="error">{error}</div> : null}
         <button type="submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</button>
       </form>
-      <p>
-        No account? <Link to="/register">Register</Link>
-      </p>
+      {ENABLE_REGISTER ? (
+        <p>
+          No account? <Link to="/register">Register</Link>
+        </p>
+      ) : null}
     </div>
   )
 }

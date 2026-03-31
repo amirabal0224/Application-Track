@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 
 import ApplicationsListPage from './pages/ApplicationsList'
@@ -7,13 +7,19 @@ import LoginPage from './pages/Login'
 import RegisterPage from './pages/Register'
 import RequireAuth from './pages/RequireAuth'
 
+const ENABLE_REGISTER = ((import.meta as any).env?.VITE_ENABLE_REGISTER ?? 'false') === 'true'
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/applications" replace />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        {ENABLE_REGISTER ? (
+          <Route path="/register" element={<RegisterPage />} />
+        ) : (
+          <Route path="/register" element={<Navigate to="/login" replace />} />
+        )}
 
         <Route element={<RequireAuth />}>
           <Route path="/applications" element={<ApplicationsListPage />} />
@@ -23,6 +29,6 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
