@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiForm } from '../api'
 import { setToken } from '../auth'
+import { handleCtrlBackspaceWordDelete } from '../keyboard'
 import type { TokenResponse } from '../types'
 
 const ENABLE_REGISTER = ((import.meta as any).env?.VITE_ENABLE_REGISTER ?? 'false') === 'true'
@@ -41,11 +42,23 @@ export default function LoginPage() {
       <form onSubmit={onSubmit} className="form">
         <label>
           Email
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setEmail)}
+            type="email"
+            required
+          />
         </label>
         <label>
           Password
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setPassword)}
+            type="password"
+            required
+          />
         </label>
         {error ? <div className="error">{error}</div> : null}
         <button type="submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</button>

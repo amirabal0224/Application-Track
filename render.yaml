@@ -1,0 +1,28 @@
+databases:
+  - name: application-track-db
+    databaseName: apptracker
+    user: apptracker
+
+services:
+  - type: web
+    name: application-track-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: application-track-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "https://amirabal0224.github.io"
+      - key: ENABLE_REGISTRATION
+        value: "false"
+      - key: DEMO_EMAIL
+        sync: false
+      - key: DEMO_PASSWORD
+        sync: false

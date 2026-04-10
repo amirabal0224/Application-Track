@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { apiJson } from '../api'
+import { handleCtrlBackspaceWordDelete } from '../keyboard'
 import type { Application, Status } from '../types'
 
 type Mode = 'create' | 'edit'
@@ -99,19 +100,38 @@ export default function ApplicationFormPage(props: { mode: Mode }) {
         <form onSubmit={onSubmit} className="form">
           <label>
             Company
-            <input value={company} onChange={(e) => setCompany(e.target.value)} required />
+            <input
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setCompany)}
+              required
+            />
           </label>
           <label>
             Role
-            <input value={role} onChange={(e) => setRole(e.target.value)} required />
+            <input
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setRole)}
+              required
+            />
           </label>
           <label>
             Location
-            <input value={location} onChange={(e) => setLocation(e.target.value)} />
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setLocation)}
+            />
           </label>
           <label>
             Job URL
-            <input value={jobUrl} onChange={(e) => setJobUrl(e.target.value)} type="url" />
+            <input
+              value={jobUrl}
+              onChange={(e) => setJobUrl(e.target.value)}
+              onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setJobUrl)}
+              type="url"
+            />
           </label>
           <label>
             Applied date
@@ -129,7 +149,12 @@ export default function ApplicationFormPage(props: { mode: Mode }) {
           </label>
           <label>
             Notes
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={6} />
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setNotes)}
+              rows={6}
+            />
           </label>
 
           <button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>

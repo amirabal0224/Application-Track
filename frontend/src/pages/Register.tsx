@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiJson } from '../api'
+import { handleCtrlBackspaceWordDelete } from '../keyboard'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -34,11 +35,23 @@ export default function RegisterPage() {
       <form onSubmit={onSubmit} className="form">
         <label>
           Email
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setEmail)}
+            type="email"
+            required
+          />
         </label>
         <label>
           Password
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setPassword)}
+            type="password"
+            required
+          />
         </label>
         {error ? <div className="error">{error}</div> : null}
         <button type="submit" disabled={loading}>{loading ? 'Creating…' : 'Create account'}</button>
