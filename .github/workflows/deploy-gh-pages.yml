@@ -24,7 +24,7 @@ jobs:
       run:
         working-directory: frontend
     env:
-      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || secrets.VITE_API_BASE_URL }}
       VITE_ENABLE_REGISTER: "false"
       VITE_BASE_PATH: "/Application-Track/"
     steps:
@@ -41,7 +41,7 @@ jobs:
       - name: Verify API base URL variable
         run: |
           if [ -z "$VITE_API_BASE_URL" ]; then
-            echo "Missing repository variable VITE_API_BASE_URL"
+            echo "Missing VITE_API_BASE_URL. Set either repo variable or secret named VITE_API_BASE_URL."
             exit 1
           fi
           if [ -z "$VITE_BASE_PATH" ]; then
