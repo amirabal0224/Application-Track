@@ -7,8 +7,40 @@ services:
       POSTGRES_DB: apptracker
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d apptracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://app:app@db:5432/apptracker
+      SECRET_KEY: dev-insecure-change-me
+      CORS_ORIGINS: http://localhost:5173,http://frontend:5173
+      ENABLE_REGISTRATION: "false"
+      DEMO_EMAIL: demo@apptrack.dev
+      DEMO_PASSWORD: ChangeMeDemo123!
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+      VITE_ENABLE_REGISTER: "false"
+    ports:
+      - "5173:5173"
 
 volumes:
   pgdata:

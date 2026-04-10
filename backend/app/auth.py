@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+import logging
 import uuid
 
 from fastapi import Depends
-from fastapi_users import FastAPIUsers
+from fastapi_users import FastAPIUsers, exceptions, schemas as fu_schemas
 from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
 from fastapi_users.manager import BaseUserManager, UUIDIDMixin
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
@@ -13,6 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .core import settings
 from .db import get_async_session
 from .models import User
+
+logger = logging.getLogger(__name__)
 
 
 async def get_user_db(session: AsyncSession = Depends(get_async_session)) -> AsyncGenerator[SQLAlchemyUserDatabase, None]:
@@ -46,3 +49,37 @@ auth_backend = AuthenticationBackend(
 fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
 
 current_active_user = fastapi_users.current_user(active=True)
+
+
+async def ensure_demo_user(session: AsyncSession) -> None:
+    email = settings.demo_email.strip()
+    password = settings.demo_password
+
+    if not email or not password:
+        return
+
+    user_db = SQLAlchemyUserDatabase(session, User)
+    user_manager = UserManager(user_db)
+
+    try:
+        await user_manager.get_by_email(email)
+        return
+    except exceptions.UserNotExists:
+        pass
+
+    try:
+        payload = fu_schemas.BaseUserCreate(
+            email=email,
+            password=password,
+            is_active=True,
+            is_superuser=False,
+            is_verified=True,
+        )
+    except Exception:
+        logger.warning("Skipping demo user seed due to invalid DEMO_EMAIL or DEMO_PASSWORD")
+        return
+
+    try:
+        await user_manager.create(payload)
+    except exceptions.UserAlreadyExists:
+        return

@@ -11,6 +11,9 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite+aiosqlite:///./apptracker.db"
     secret_key: str = "CHANGE_ME"
+    enable_registration: bool = True
+    demo_email: str = ""
+    demo_password: str = ""
 
     cors_origins: str = "http://localhost:5173,http://localhost:5174"
 

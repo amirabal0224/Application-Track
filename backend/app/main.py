@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_users import schemas as fu_schemas
 from sqlalchemy import select
 
-from .auth import auth_backend, fastapi_users
+from .auth import auth_backend, ensure_demo_user, fastapi_users
 from .core import settings
 from .db import SessionLocal, engine
 from .models import Base, Status
@@ -34,7 +34,8 @@ app.add_middleware(
 )
 
 app.include_router(fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"])
-app.include_router(fastapi_users.get_register_router(UserRead, UserCreate), prefix="/auth", tags=["auth"])
+if settings.enable_registration:
+    app.include_router(fastapi_users.get_register_router(UserRead, UserCreate), prefix="/auth", tags=["auth"])
 
 app.include_router(statuses_router)
 app.include_router(applications_router)
@@ -60,3 +61,5 @@ async def on_startup() -> None:
         if to_add:
             session.add_all(to_add)
             await session.commit()
+
+        await ensure_demo_user(session)
