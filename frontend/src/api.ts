@@ -1,6 +1,8 @@
 import { getToken } from './auth'
 
-const DEFAULT_BASE_URL = 'http://localhost:8000'
+// Default to same-origin so Docker/Nginx deployments do not depend on a build-time API URL.
+const DEFAULT_BASE_URL = ''
+const REQUEST_TIMEOUT_MS = 15000
 
 export const API_BASE_URL: string =
   (import.meta as any).env?.VITE_API_BASE_URL || DEFAULT_BASE_URL
@@ -21,6 +23,24 @@ async function parseError(res: Response): Promise<ApiError> {
   }
 }
 
+async function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    })
+  } catch (err: any) {
+    if (err?.name === 'AbortError') {
+      throw { status: 0, message: 'Request timed out. Check API URL and server health.' } as ApiError
+    }
+    throw { status: 0, message: 'Network error. Check API URL and CORS settings.' } as ApiError
+  } finally {
+    window.clearTimeout(timeout)
+  }
+}
+
 export async function apiJson<T>(
   path: string,
   options: RequestInit & { skipAuth?: boolean } = {},
@@ -38,7 +58,7 @@ export async function apiJson<T>(
     headers.set('Authorization', `Bearer ${token}`)
   }
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await fetchWithTimeout(`${API_BASE_URL}${path}`, {
     ...options,
     headers,
   })
@@ -68,7 +88,7 @@ export async function apiForm<T>(
     headers.set('Authorization', `Bearer ${token}`)
   }
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await fetchWithTimeout(`${API_BASE_URL}${path}`, {
     ...options,
     method: options.method ?? 'POST',
     headers,

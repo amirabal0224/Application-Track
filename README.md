@@ -67,8 +67,9 @@ This is the quickest full-stack deployment on your computer.
 
 You can run the whole stack as Docker images on a server instead of using Render.
 
-1. Set repository secrets in GitHub:
-	- `VITE_API_BASE_URL` — the backend URL (for building frontend image).
+1. Optional repository secret in GitHub:
+	- `VITE_API_BASE_URL` — set this only if frontend should call a separate external backend URL.
+	- If not set, frontend defaults to same-origin API calls and `frontend/nginx.conf` proxies them to the `backend` service.
 
 2. A GitHub Actions workflow is included (`.github/workflows/publish-images.yml`) which builds and pushes two images to GitHub Container Registry (GHCR):
 	- `ghcr.io/<your-org>/application-track-backend:latest`
