@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: apptracker
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: supersecret
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    image: ghcr.io/amirabal0224/application-track-backend:latest
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://appuser:supersecret@db:5432/apptracker
+      SECRET_KEY: "CHANGE_ME_REPLACE"
+      CORS_ORIGINS: "https://amirabal0224.github.io"
+      ENABLE_REGISTRATION: "false"
+      DEMO_EMAIL: "demo@apptrack.dev"
+      DEMO_PASSWORD: "ChangeMeDemo123!"
+
+  frontend:
+    image: ghcr.io/amirabal0224/application-track-frontend:latest
+    restart: always
+    ports:
+      - "80:80"
+
+volumes:
+  db-data:

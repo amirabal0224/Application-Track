@@ -62,3 +62,35 @@ This is the quickest full-stack deployment on your computer.
 - `cd frontend`
 - `npm.cmd install`
 - `npm.cmd run dev`
+
+## Deploy With Docker (production)
+
+You can run the whole stack as Docker images on a server instead of using Render.
+
+1. Set repository secrets in GitHub:
+	- `VITE_API_BASE_URL` — the backend URL (for building frontend image).
+
+2. A GitHub Actions workflow is included (`.github/workflows/publish-images.yml`) which builds and pushes two images to GitHub Container Registry (GHCR):
+	- `ghcr.io/<your-org>/application-track-backend:latest`
+	- `ghcr.io/<your-org>/application-track-frontend:latest`
+
+3. On your server copy `docker-compose.prod.yml` and run:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+4. Required environment variables in `docker-compose.prod.yml` (or via a `.env` file):
+- `DATABASE_URL` — `postgresql+asyncpg://user:pass@db:5432/dbname`
+- `SECRET_KEY`
+- `CORS_ORIGINS` — include your frontend domain (e.g. `https://amirabal0224.github.io` or your hostname)
+- `ENABLE_REGISTRATION=false` (recommended for demo)
+- `DEMO_EMAIL`, `DEMO_PASSWORD`
+
+5. For HTTPS, run a reverse proxy (Caddy/Traefik/nginx) in front of the compose stack or use your cloud provider's load balancer.
+
+Notes:
+- The backend normalizes common `postgres://` URLs to `postgresql+asyncpg://` in `backend/app/core.py`.
+- The frontend build uses `VITE_API_BASE_URL` at build time; set that secret so the published frontend points to the correct backend.
+
