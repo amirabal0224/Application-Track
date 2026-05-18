@@ -33,7 +33,7 @@ This is the quickest full-stack deployment on your computer.
 1. Push this repo to GitHub.
 2. In Render, create a Blueprint deployment from [render.yaml](render.yaml).
 3. In Render service env vars, set:
-- `CORS_ORIGINS=https://amirabal0224.github.io`
+- `CORS_ORIGINS=https://your-site.netlify.app`
 - `DEMO_EMAIL` (example: `demo@apptrack.dev`)
 - `DEMO_PASSWORD` (example: `ChangeMeDemo123!`)
 4. Keep `ENABLE_REGISTRATION=false` for demo mode.
@@ -41,14 +41,17 @@ This is the quickest full-stack deployment on your computer.
 - `https://application-track-api.onrender.com/health` (or your service URL)
 - `https://application-track-api.onrender.com/docs` (or your service URL)
 
-### Frontend (GitHub Pages)
-1. In GitHub repo settings:
-- Enable GitHub Pages with GitHub Actions as the source.
-- Add repository variable `VITE_API_BASE_URL` set to your Render backend URL.
+### Frontend (Netlify)
+1. Connect the repository to Netlify and set the base directory to `frontend`.
+2. Use these build settings:
+- Build command: `npm run build`
+- Publish directory: `dist`
+3. Add Netlify environment variables:
+- `VITE_API_BASE_URL` set to your deployed backend URL.
 	- For example: `https://application-track-api.onrender.com`
-2. Push to `main` to trigger workflow [deploy-gh-pages.yml](.github/workflows/deploy-gh-pages.yml).
-3. Open the published URL and verify login + CRUD flow.
-	- Expected URL for this repo: `https://amirabal0224.github.io/Application-Track/`
+- `VITE_ENABLE_REGISTER=false` for demo mode.
+4. Set the backend CORS allowlist to include your Netlify domain, for example `https://your-site.netlify.app` or your custom domain.
+5. Open the Netlify site and verify login + CRUD flow.
 
 ## Local Dev (Without Docker For Frontend/Backend)
 1. Start database
@@ -63,13 +66,19 @@ This is the quickest full-stack deployment on your computer.
 - `npm.cmd install`
 - `npm.cmd run dev`
 
+## Netlify Notes
+
+- The frontend is a static Vite build in [frontend/](frontend/).
+- Netlify uses [netlify.toml](netlify.toml) to build from that folder and route SPA paths to `index.html`.
+- The backend still needs the frontend origin in `CORS_ORIGINS`.
+
 ## Deploy With Docker (production)
 
 You can run the whole stack as Docker images on a server instead of using Render.
 
 1. For the Docker image workflow, no API secret is needed.
 	- The frontend image uses same-origin API calls and `frontend/nginx.conf` proxies them to the `backend` service.
-	- Keep `VITE_API_BASE_URL` only for the GitHub Pages workflow if you still publish that site.
+	- Keep `VITE_API_BASE_URL` set when the frontend is built against a separate backend.
 
 2. A GitHub Actions workflow is included (`.github/workflows/publish-images.yml`) which builds and pushes two images to GitHub Container Registry (GHCR):
 	- `ghcr.io/<your-org>/application-track-backend:latest`
@@ -85,7 +94,7 @@ docker compose up -d
 4. Required environment variables in `docker-compose.prod.yml` (or via a `.env` file):
 - `DATABASE_URL` — `postgresql+asyncpg://user:pass@db:5432/dbname`
 - `SECRET_KEY`
-- `CORS_ORIGINS` — include your frontend domain (e.g. `https://amirabal0224.github.io` or your hostname)
+- `CORS_ORIGINS` — include your frontend domain (e.g. `https://your-site.netlify.app` or your hostname)
 - `ENABLE_REGISTRATION=false` (recommended for demo)
 - `DEMO_EMAIL`, `DEMO_PASSWORD`
 
@@ -93,5 +102,5 @@ docker compose up -d
 
 Notes:
 - The backend normalizes common `postgres://` URLs to `postgresql+asyncpg://` in `backend/app/core.py`.
-- The frontend build uses `VITE_API_BASE_URL` at build time; set that secret so the published frontend points to the correct backend.
+- The frontend build uses `VITE_API_BASE_URL` at build time; set that environment variable in Netlify or any other static host so the published frontend points to the correct backend.
 

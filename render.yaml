@@ -19,7 +19,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: "https://amirabal0224.github.io"
+        value: "https://your-site.netlify.app"
       - key: ENABLE_REGISTRATION
         value: "false"
       - key: DEMO_EMAIL

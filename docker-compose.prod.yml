@@ -26,7 +26,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://appuser:supersecret@db:5432/apptracker
       SECRET_KEY: "CHANGE_ME_REPLACE"
-      CORS_ORIGINS: "https://amirabal0224.github.io"
+      CORS_ORIGINS: "https://your-site.netlify.app"
       ENABLE_REGISTRATION: "false"
       DEMO_EMAIL: "demo@apptrack.dev"
       DEMO_PASSWORD: "ChangeMeDemo123!"
