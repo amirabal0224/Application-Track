@@ -44,6 +44,9 @@ services:
   frontend:
     image: ghcr.io/amirabal0224/application-track-frontend:latest
     restart: always
+    environment:
+      # Note: For production Docker Compose, the frontend is already built with VITE_API_BASE_URL.
+      # If using a dynamic API_BASE_URL, rebuild the image with --build-arg VITE_API_BASE_URL=...
     ports:
       - "80:80"
     healthcheck:
