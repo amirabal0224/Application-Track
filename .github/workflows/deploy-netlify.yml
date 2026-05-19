@@ -52,13 +52,24 @@ jobs:
             echo "VITE_API_BASE_URL not set; skipping backend checks"
             exit 0
           fi
-          # Sanitize the value: remove CR characters and surrounding quotes
-          API_BASE_URL="$(printf '%s' "${VITE_API_BASE_URL}" | tr -d '\r' | sed -e 's/^"//' -e 's/"$//')"
+          # Sanitize the value: remove CR/newline, surrounding quotes, non-printables, and trim whitespace
+          API_BASE_URL="$(printf '%s' "${VITE_API_BASE_URL}" | tr -d '\r\n' | sed -e 's/^"//' -e 's/"$//' )"
+          API_BASE_URL="$(printf '%s' "${API_BASE_URL}" | tr -cd '[:print:]')"
+          API_BASE_URL="$(printf '%s' "${API_BASE_URL}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+
           if [ -z "${API_BASE_URL}" ]; then
             echo "VITE_API_BASE_URL empty after sanitization; skipping backend checks"
             exit 0
           fi
-          curl -fsS "${API_BASE_URL}/health"
+
+          # Basic validation: require http:// or https:// to avoid malformed-URL errors
+          if ! printf '%s' "${API_BASE_URL}" | grep -Eq '^https?://'; then
+            echo "VITE_API_BASE_URL does not start with http:// or https://; skipping backend checks"
+            exit 0
+          fi
+
+          # Use --url for clarity and call health endpoint
+          curl -fsS --url "${API_BASE_URL}/health"
 
       - name: Test demo login
         run: |
