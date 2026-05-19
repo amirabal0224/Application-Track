@@ -52,7 +52,13 @@ jobs:
             echo "VITE_API_BASE_URL not set; skipping backend checks"
             exit 0
           fi
-          curl -fsS "${VITE_API_BASE_URL}/health"
+          # Sanitize the value: remove CR characters and surrounding quotes
+          API_BASE_URL="$(printf '%s' "${VITE_API_BASE_URL}" | tr -d '\r' | sed -e 's/^"//' -e 's/"$//')"
+          if [ -z "${API_BASE_URL}" ]; then
+            echo "VITE_API_BASE_URL empty after sanitization; skipping backend checks"
+            exit 0
+          fi
+          curl -fsS "${API_BASE_URL}/health"
 
       - name: Test demo login
         run: |
