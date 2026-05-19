@@ -1,0 +1,65 @@
+name: Deploy Frontend To Netlify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-netlify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+      DEMO_EMAIL: ${{ secrets.DEMO_EMAIL }}
+      DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend with API URL
+        working-directory: frontend
+        run: |
+          echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" >> .env
+          echo "VITE_ENABLE_REGISTER=false" >> .env
+          npm run build
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
+      - name: Deploy to Netlify
+        run: netlify deploy --prod --dir=frontend/dist --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
+
+      - name: Verify backend health
+        run: |
+          if [ -z "${VITE_API_BASE_URL}" ]; then
+            echo "VITE_API_BASE_URL not set; skipping backend checks"
+            exit 0
+          fi
+          curl -fsS "${VITE_API_BASE_URL}/health"
+
+      - name: Test demo login
+        run: |
+          if [ -z "${DEMO_EMAIL}" ] || [ -z "${DEMO_PASSWORD}" ]; then
+            echo "Demo credentials not provided; skipping login test"
+            exit 0
+          fi
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${VITE_API_BASE_URL}/auth/jwt/login" -H 'Content-Type: application/x-www-form-urlencoded' --data "username=${DEMO_EMAIL}&password=${DEMO_PASSWORD}")
+          echo "Login returned $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then exit 1; fi

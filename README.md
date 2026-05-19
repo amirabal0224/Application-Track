@@ -29,17 +29,18 @@ This is the quickest full-stack deployment on your computer.
 
 ## Deploy To Production
 
-### Backend (Render)
-1. Push this repo to GitHub.
-2. In Render, create a Blueprint deployment from [render.yaml](render.yaml).
-3. In Render service env vars, set:
-- `CORS_ORIGINS=https://your-site.netlify.app`
-- `DEMO_EMAIL` (example: `demo@apptrack.dev`)
-- `DEMO_PASSWORD` (example: `ChangeMeDemo123!`)
-4. Keep `ENABLE_REGISTRATION=false` for demo mode.
-5. After deploy, verify:
-- `https://application-track-api.onrender.com/health` (or your service URL)
-- `https://application-track-api.onrender.com/docs` (or your service URL)
+### Backend
+You can deploy the backend to any hosting provider that supports Python web services (VPS, cloud VM, container registry, or a platform-as-a-service). Important notes:
+
+- The service exposes a FastAPI app on `/` and provides `/health` and `/docs` endpoints for verification.
+- Required environment variables:
+	- `DATABASE_URL` — e.g. `postgresql+asyncpg://user:pass@host:5432/dbname`
+	- `SECRET_KEY`
+	- `CORS_ORIGINS` — include your Netlify domain (e.g. `https://your-site.netlify.app`) or custom domain
+	- `ENABLE_REGISTRATION` (optional)
+	- `DEMO_EMAIL`, `DEMO_PASSWORD` (optional demo account)
+
+You can deploy with Docker Compose using `docker-compose.prod.yml`, or build the image from `backend/` and run it on your server/container platform. After deployment, verify the API health endpoint and docs (e.g. `https://your-backend.example/health`).
 
 ### Frontend (Netlify)
 1. Connect the repository to Netlify and set the base directory to `frontend`.
@@ -48,10 +49,37 @@ This is the quickest full-stack deployment on your computer.
 - Publish directory: `dist`
 3. Add Netlify environment variables:
 - `VITE_API_BASE_URL` set to your deployed backend URL.
-	- For example: `https://application-track-api.onrender.com`
+	- For example: `https://your-backend.example`
 - `VITE_ENABLE_REGISTER=false` for demo mode.
 4. Set the backend CORS allowlist to include your Netlify domain, for example `https://your-site.netlify.app` or your custom domain.
 5. Open the Netlify site and verify login + CRUD flow.
+
+### GitHub Action + Netlify automation
+
+The repository includes a GitHub Action that builds the frontend with the correct `VITE_API_BASE_URL` and deploys the static site to Netlify automatically. To enable it, add the following repository secrets in GitHub (Settings → Secrets → Actions):
+
+- `NETLIFY_AUTH_TOKEN` — a Netlify personal access token with `sites:deploy` scope. Create one at https://app.netlify.com/user/applications#personal-access-tokens.
+- `NETLIFY_SITE_ID` — the Site ID of your Netlify site (Site settings → General → Site details → Site ID).
+- `VITE_API_BASE_URL` — the full URL of your backend API (e.g., `https://your-backend.example`).
+- `DEMO_EMAIL` and `DEMO_PASSWORD` — (optional) demo credentials used by the workflow to run a smoke login test after deployment.
+
+Once set, push a commit to `main` (or run the workflow manually) — the Action will:
+
+- Build `frontend` with the provided `VITE_API_BASE_URL` and `VITE_ENABLE_REGISTER=false`.
+- Deploy `frontend/dist` to Netlify.
+- Run a post-deploy health check against `${VITE_API_BASE_URL}/health` and attempt a demo login to verify the backend.
+
+Local verification before pushing:
+
+Run the local build and verify `VITE_API_BASE_URL` is embedded in the build output:
+
+```bash
+cd frontend
+VITE_API_BASE_URL=https://your-backend.example npm run build
+./scripts/verify_netlify_build.sh https://your-backend.example
+```
+
+If the verification script finds the API URL in `frontend/dist` the build is configured correctly.
 
 ## Local Dev (Without Docker For Frontend/Backend)
 1. Start database
@@ -70,7 +98,7 @@ This is the quickest full-stack deployment on your computer.
 
 - The frontend is a static Vite build in [frontend/](frontend/).
 - Netlify uses [netlify.toml](netlify.toml) to build from that folder and route SPA paths to `index.html`.
-- The backend still needs the frontend origin in `CORS_ORIGINS`.
+- The backend allows `*.netlify.app` origins by default and still supports exact origins via `CORS_ORIGINS`.
 
 ## Deploy With Docker (production)
 
