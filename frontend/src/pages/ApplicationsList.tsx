@@ -12,14 +12,6 @@ type SortOption =
   | 'applied-desc'
   | 'status-priority'
 
-const STATUS_PRIORITY = new Map([
-  ['Offer', 0],
-  ['Interview', 1],
-  ['Applied', 2],
-  ['Rejected', 3],
-  ['Withdrawn', 4],
-])
-
 export default function ApplicationsListPage() {
   const navigate = useNavigate()
   const [apps, setApps] = useState<Application[]>([])
@@ -34,47 +26,13 @@ export default function ApplicationsListPage() {
     return map
   }, [statuses])
 
-  const sortedApps = useMemo(() => {
-    const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true })
-
-    const getStatusRank = (application: Application) => {
-      const statusName = statusById.get(application.status_id)?.name
-      if (!statusName) return STATUS_PRIORITY.size
-      return STATUS_PRIORITY.get(statusName) ?? STATUS_PRIORITY.size
-    }
-
-    return [...apps].sort((left, right) => {
-      switch (sortOption) {
-        case 'name-asc':
-          return collator.compare(left.company, right.company) || collator.compare(left.role, right.role)
-        case 'name-desc':
-          return collator.compare(right.company, left.company) || collator.compare(right.role, left.role)
-        case 'applied-asc': {
-          const leftApplied = left.applied_date ? new Date(left.applied_date).getTime() : Number.POSITIVE_INFINITY
-          const rightApplied = right.applied_date ? new Date(right.applied_date).getTime() : Number.POSITIVE_INFINITY
-          return leftApplied - rightApplied || collator.compare(left.company, right.company)
-        }
-        case 'applied-desc': {
-          const leftApplied = left.applied_date ? new Date(left.applied_date).getTime() : Number.NEGATIVE_INFINITY
-          const rightApplied = right.applied_date ? new Date(right.applied_date).getTime() : Number.NEGATIVE_INFINITY
-          return rightApplied - leftApplied || collator.compare(left.company, right.company)
-        }
-        case 'status-priority':
-          return getStatusRank(left) - getStatusRank(right) || collator.compare(left.company, right.company)
-        case 'updated-desc':
-        default:
-          return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime() || collator.compare(left.company, right.company)
-      }
-    })
-  }, [apps, sortOption, statusById])
-
-  async function load() {
+  async function load(currentSort: SortOption) {
     setLoading(true)
     setError(null)
     try {
       const [st, ap] = await Promise.all([
         apiJson<Status[]>('/statuses'),
-        apiJson<Application[]>('/applications'),
+        apiJson<Application[]>(`/applications?sort=${currentSort}`),
       ])
       setStatuses(st)
       setApps(ap)
@@ -91,8 +49,8 @@ export default function ApplicationsListPage() {
   }
 
   useEffect(() => {
-    void load()
-  }, [])
+    void load(sortOption)
+  }, [sortOption])
 
   async function onDelete(id: string) {
     if (!confirm('Delete this application?')) return
@@ -148,7 +106,7 @@ export default function ApplicationsListPage() {
             </tr>
           </thead>
           <tbody>
-            {sortedApps.map((a) => (
+            {apps.map((a) => (
               <tr key={a.id}>
                 <td>{a.company}</td>
                 <td>{a.role}</td>
