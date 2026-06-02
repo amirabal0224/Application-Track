@@ -29,6 +29,40 @@ This is the quickest full-stack deployment on your computer.
 
 ## Deploy To Production
 
+### Quick Render + Netlify Checklist
+Use this when you are finishing the hosted demo setup.
+
+1. Deploy the backend on Render.
+- Create a managed Postgres database.
+- Deploy the FastAPI service from `backend/`.
+- Set `DATABASE_URL`, `SECRET_KEY`, `CORS_ORIGINS`, `DEMO_EMAIL`, `DEMO_PASSWORD`, and `ENABLE_REGISTRATION=false`.
+- Verify `https://<your-backend>/health` and `https://<your-backend>/docs`.
+
+2. Deploy the frontend on Netlify.
+- Connect the repo with `frontend` as the base directory.
+- Set build command to `npm run build` and publish directory to `dist`.
+- Add `VITE_API_BASE_URL=<your-backend-origin>`.
+- Add `VITE_ENABLE_REGISTER=false`.
+
+3. Enable automatic deploys from GitHub Actions if you want push-to-main deploys.
+- Add `NETLIFY_AUTH_TOKEN`.
+- Add `NETLIFY_SITE_ID`.
+- Add `VITE_API_BASE_URL`.
+- Optionally add `DEMO_EMAIL` and `DEMO_PASSWORD` for smoke login checks.
+
+4. Verify the live demo.
+- Open the Netlify site in a private browser session.
+- Log in with the demo user.
+- Create, edit, delete, and refresh an application record.
+
+5. If something fails, run the local build check first.
+
+```bash
+cd frontend
+VITE_API_BASE_URL=https://your-backend.example npm run build
+../scripts/verify_netlify_build.sh https://your-backend.example
+```
+
 ### Backend
 You can deploy the backend to any hosting provider that supports Python web services (VPS, cloud VM, container registry, or a platform-as-a-service). Important notes:
 
@@ -76,7 +110,7 @@ Run the local build and verify `VITE_API_BASE_URL` is embedded in the build outp
 ```bash
 cd frontend
 VITE_API_BASE_URL=https://your-backend.example npm run build
-./scripts/verify_netlify_build.sh https://your-backend.example
+../scripts/verify_netlify_build.sh https://your-backend.example
 ```
 
 If the verification script finds the API URL in `frontend/dist` the build is configured correctly.

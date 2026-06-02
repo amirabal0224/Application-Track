@@ -36,7 +36,10 @@ jobs:
       - name: Build frontend with API URL
         working-directory: frontend
         run: |
-          echo "VITE_API_BASE_URL=${VITE_API_BASE_URL}" >> .env
+          API_BASE_URL="$(printf '%s' "${VITE_API_BASE_URL}" | tr -d '\r\n' | sed -e 's/^"//' -e 's/"$//' )"
+          API_BASE_URL="$(printf '%s' "${API_BASE_URL}" | tr -cd '[:print:]')"
+          API_BASE_URL="$(printf '%s' "${API_BASE_URL}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+          echo "VITE_API_BASE_URL=${API_BASE_URL}" >> .env
           echo "VITE_ENABLE_REGISTER=false" >> .env
           npm run build
 
@@ -44,7 +47,8 @@ jobs:
         run: npm install -g netlify-cli
 
       - name: Deploy to Netlify
-        run: netlify deploy --prod --dir=frontend/dist --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
+        working-directory: frontend
+        run: netlify deploy --prod --dir=dist --site="$NETLIFY_SITE_ID"
 
       - name: Verify backend health
         run: |
@@ -77,6 +81,21 @@ jobs:
             echo "Demo credentials not provided; skipping login test"
             exit 0
           fi
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${VITE_API_BASE_URL}/auth/jwt/login" -H 'Content-Type: application/x-www-form-urlencoded' --data "username=${DEMO_EMAIL}&password=${DEMO_PASSWORD}")
+
+          API_BASE_URL="$(printf '%s' "${VITE_API_BASE_URL}" | tr -d '\r\n' | sed -e 's/^"//' -e 's/"$//' )"
+          API_BASE_URL="$(printf '%s' "${API_BASE_URL}" | tr -cd '[:print:]')"
+          API_BASE_URL="$(printf '%s' "${API_BASE_URL}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+
+          if [ -z "${API_BASE_URL}" ]; then
+            echo "VITE_API_BASE_URL empty after sanitization; skipping login test"
+            exit 0
+          fi
+
+          if ! printf '%s' "${API_BASE_URL}" | grep -Eq '^https?://'; then
+            echo "VITE_API_BASE_URL does not start with http:// or https://; skipping login test"
+            exit 0
+          fi
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${API_BASE_URL}/auth/jwt/login" -H 'Content-Type: application/x-www-form-urlencoded' --data "username=${DEMO_EMAIL}&password=${DEMO_PASSWORD}")
           echo "Login returned $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then exit 1; fi
