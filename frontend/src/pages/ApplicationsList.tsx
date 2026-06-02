@@ -4,18 +4,69 @@ import { apiJson } from '../api'
 import { clearToken } from '../auth'
 import type { Application, Status } from '../types'
 
+type SortOption =
+  | 'updated-desc'
+  | 'name-asc'
+  | 'name-desc'
+  | 'applied-asc'
+  | 'applied-desc'
+  | 'status-priority'
+
+const STATUS_PRIORITY = new Map([
+  ['Offer', 0],
+  ['Interview', 1],
+  ['Applied', 2],
+  ['Rejected', 3],
+  ['Withdrawn', 4],
+])
+
 export default function ApplicationsListPage() {
   const navigate = useNavigate()
   const [apps, setApps] = useState<Application[]>([])
   const [statuses, setStatuses] = useState<Status[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [sortOption, setSortOption] = useState<SortOption>('updated-desc')
 
   const statusById = useMemo(() => {
     const map = new Map<string, Status>()
     for (const s of statuses) map.set(s.id, s)
     return map
   }, [statuses])
+
+  const sortedApps = useMemo(() => {
+    const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true })
+
+    const getStatusRank = (application: Application) => {
+      const statusName = statusById.get(application.status_id)?.name
+      if (!statusName) return STATUS_PRIORITY.size
+      return STATUS_PRIORITY.get(statusName) ?? STATUS_PRIORITY.size
+    }
+
+    return [...apps].sort((left, right) => {
+      switch (sortOption) {
+        case 'name-asc':
+          return collator.compare(left.company, right.company) || collator.compare(left.role, right.role)
+        case 'name-desc':
+          return collator.compare(right.company, left.company) || collator.compare(right.role, left.role)
+        case 'applied-asc': {
+          const leftApplied = left.applied_date ? new Date(left.applied_date).getTime() : Number.POSITIVE_INFINITY
+          const rightApplied = right.applied_date ? new Date(right.applied_date).getTime() : Number.POSITIVE_INFINITY
+          return leftApplied - rightApplied || collator.compare(left.company, right.company)
+        }
+        case 'applied-desc': {
+          const leftApplied = left.applied_date ? new Date(left.applied_date).getTime() : Number.NEGATIVE_INFINITY
+          const rightApplied = right.applied_date ? new Date(right.applied_date).getTime() : Number.NEGATIVE_INFINITY
+          return rightApplied - leftApplied || collator.compare(left.company, right.company)
+        }
+        case 'status-priority':
+          return getStatusRank(left) - getStatusRank(right) || collator.compare(left.company, right.company)
+        case 'updated-desc':
+        default:
+          return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime() || collator.compare(left.company, right.company)
+      }
+    })
+  }, [apps, sortOption, statusById])
 
   async function load() {
     setLoading(true)
@@ -64,6 +115,17 @@ export default function ApplicationsListPage() {
       <div className="row">
         <h1>Applications</h1>
         <div className="row">
+          <label className="sortControl">
+            <span className="sortControlLabel">Sort by</span>
+            <select value={sortOption} onChange={(event) => setSortOption(event.target.value as SortOption)}>
+              <option value="updated-desc">Updated newest</option>
+              <option value="name-asc">Name A-Z</option>
+              <option value="name-desc">Name Z-A</option>
+              <option value="applied-asc">Date applied oldest</option>
+              <option value="applied-desc">Date applied newest</option>
+              <option value="status-priority">Status priority</option>
+            </select>
+          </label>
           <Link to="/applications/new" className="linkBtn">New</Link>
           <button onClick={onLogout} type="button">Logout</button>
         </div>
@@ -86,7 +148,7 @@ export default function ApplicationsListPage() {
             </tr>
           </thead>
           <tbody>
-            {apps.map((a) => (
+            {sortedApps.map((a) => (
               <tr key={a.id}>
                 <td>{a.company}</td>
                 <td>{a.role}</td>
