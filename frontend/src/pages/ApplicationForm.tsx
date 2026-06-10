@@ -88,16 +88,19 @@ export default function ApplicationFormPage(props: { mode: Mode }) {
 
   return (
     <div className="container">
-      <div className="row">
-        <h1>{props.mode === 'create' ? 'New application' : 'Edit application'}</h1>
-        <Link to="/applications">Back</Link>
-      </div>
+      <header className="pageHeader">
+        <div>
+          <h1>{props.mode === 'create' ? 'New application' : 'Edit application'}</h1>
+          <p className="muted">{props.mode === 'create' ? 'Add a role to your tracker.' : 'Update the details of this application.'}</p>
+        </div>
+        <Link to="/applications" className="backLink">← Back</Link>
+      </header>
 
       {error ? <div className="error">{error}</div> : null}
       {loading ? (
-        <p>Loading…</p>
+        <p className="stateText">Loading…</p>
       ) : (
-        <form onSubmit={onSubmit} className="form">
+        <form onSubmit={onSubmit} className="form formCard">
           <label>
             Company
             <input
