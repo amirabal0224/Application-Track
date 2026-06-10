@@ -37,37 +37,45 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="container">
-      <h1>Login</h1>
-      <form onSubmit={onSubmit} className="form">
-        <label>
-          Email
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setEmail)}
-            type="email"
-            required
-          />
-        </label>
-        <label>
-          Password
-          <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setPassword)}
-            type="password"
-            required
-          />
-        </label>
-        {error ? <div className="error">{error}</div> : null}
-        <button type="submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</button>
-      </form>
-      {ENABLE_REGISTER ? (
-        <p>
-          No account? <Link to="/register">Register</Link>
-        </p>
-      ) : null}
+    <div className="authShell">
+      <div className="authCard">
+        <div className="authBrand">
+          <span className="authLogo">A</span>
+          <div>
+            <h1 className="authTitle">Welcome back</h1>
+          </div>
+        </div>
+        <p className="authSubtitle">Sign in to your application tracker.</p>
+        <form onSubmit={onSubmit} className="form">
+          <label>
+            Email
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setEmail)}
+              type="email"
+              required
+            />
+          </label>
+          <label>
+            Password
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setPassword)}
+              type="password"
+              required
+            />
+          </label>
+          {error ? <div className="error">{error}</div> : null}
+          <button type="submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</button>
+        </form>
+        {ENABLE_REGISTER ? (
+          <p className="authFooter">
+            No account? <Link to="/register">Register</Link>
+          </p>
+        ) : null}
+      </div>
     </div>
   )
 }

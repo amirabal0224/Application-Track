@@ -1,3 +1,32 @@
+:root {
+  /* Color system */
+  --background: #f4f5f9;
+  --surface: #ffffff;
+  --surface-muted: #f8f9fc;
+  --border: #e4e7ee;
+  --border-strong: #d3d7e0;
+
+  --foreground: #161925;
+  --muted-foreground: #6b7280;
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e8f0fe;
+
+  --success: #047857;
+  --success-soft: #e3f5ee;
+  --warning: #b45309;
+  --warning-soft: #fdf0db;
+  --danger: #dc2626;
+  --danger-soft: #fdecec;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 6px 24px rgba(16, 24, 40, 0.08);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -9,5 +38,10 @@ body,
 }
 
 a {
-  color: inherit;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }

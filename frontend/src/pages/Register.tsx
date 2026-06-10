@@ -30,35 +30,43 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="container">
-      <h1>Register</h1>
-      <form onSubmit={onSubmit} className="form">
-        <label>
-          Email
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setEmail)}
-            type="email"
-            required
-          />
-        </label>
-        <label>
-          Password
-          <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setPassword)}
-            type="password"
-            required
-          />
-        </label>
-        {error ? <div className="error">{error}</div> : null}
-        <button type="submit" disabled={loading}>{loading ? 'Creating…' : 'Create account'}</button>
-      </form>
-      <p>
-        Have an account? <Link to="/login">Login</Link>
-      </p>
+    <div className="authShell">
+      <div className="authCard">
+        <div className="authBrand">
+          <span className="authLogo">A</span>
+          <div>
+            <h1 className="authTitle">Create account</h1>
+          </div>
+        </div>
+        <p className="authSubtitle">Start tracking your job applications.</p>
+        <form onSubmit={onSubmit} className="form">
+          <label>
+            Email
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setEmail)}
+              type="email"
+              required
+            />
+          </label>
+          <label>
+            Password
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => handleCtrlBackspaceWordDelete(e, setPassword)}
+              type="password"
+              required
+            />
+          </label>
+          {error ? <div className="error">{error}</div> : null}
+          <button type="submit" disabled={loading}>{loading ? 'Creating…' : 'Create account'}</button>
+        </form>
+        <p className="authFooter">
+          Have an account? <Link to="/login">Login</Link>
+        </p>
+      </div>
     </div>
   )
 }

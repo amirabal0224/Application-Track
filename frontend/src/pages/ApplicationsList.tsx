@@ -70,9 +70,12 @@ export default function ApplicationsListPage() {
 
   return (
     <div className="container">
-      <div className="row">
-        <h1>Applications</h1>
-        <div className="row">
+      <header className="pageHeader">
+        <div>
+          <h1>Applications</h1>
+          <p className="muted">Track every role you&apos;ve applied to.</p>
+        </div>
+        <div className="pageHeaderActions">
           <label className="sortControl">
             <span className="sortControlLabel">Sort by</span>
             <select value={sortOption} onChange={(event) => setSortOption(event.target.value as SortOption)}>
@@ -84,42 +87,70 @@ export default function ApplicationsListPage() {
               <option value="status-priority">Status priority</option>
             </select>
           </label>
-          <Link to="/applications/new" className="linkBtn">New</Link>
+          <Link to="/applications/new" className="linkBtn">New application</Link>
           <button onClick={onLogout} type="button">Logout</button>
         </div>
-      </div>
+      </header>
 
       {error ? <div className="error">{error}</div> : null}
       {loading ? (
-        <p>Loading…</p>
+        <p className="stateText">Loading…</p>
       ) : apps.length === 0 ? (
-        <p>No applications yet.</p>
+        <div className="emptyCard">
+          <p>No applications yet.</p>
+          <Link to="/applications/new" className="linkBtn">Add your first application</Link>
+        </div>
       ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Company</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Updated</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
+        <>
+          <div className="tableWrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Updated</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {apps.map((a) => (
+                  <tr key={a.id}>
+                    <td className="cellCompany">{a.company}</td>
+                    <td>{a.role}</td>
+                    <td>
+                      <span className="badge">{statusById.get(a.status_id)?.name ?? '—'}</span>
+                    </td>
+                    <td className="cellMuted">{new Date(a.updated_at).toLocaleDateString()}</td>
+                    <td className="actions">
+                      <Link to={`/applications/${a.id}/edit`} className="editLink">Edit</Link>
+                      <button type="button" className="iconBtn danger" onClick={() => onDelete(a.id)}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="cardList">
             {apps.map((a) => (
-              <tr key={a.id}>
-                <td>{a.company}</td>
-                <td>{a.role}</td>
-                <td>{statusById.get(a.status_id)?.name ?? '—'}</td>
-                <td>{new Date(a.updated_at).toLocaleString()}</td>
-                <td className="actions">
-                  <Link to={`/applications/${a.id}/edit`}>Edit</Link>
-                  <button type="button" onClick={() => onDelete(a.id)}>Delete</button>
-                </td>
-              </tr>
+              <article key={a.id} className="appCard">
+                <div className="appCardTop">
+                  <div>
+                    <div className="appCardCompany">{a.company}</div>
+                    <div className="appCardRole">{a.role}</div>
+                  </div>
+                  <span className="badge">{statusById.get(a.status_id)?.name ?? '—'}</span>
+                </div>
+                <div className="appCardMeta">Updated {new Date(a.updated_at).toLocaleDateString()}</div>
+                <div className="appCardActions">
+                  <Link to={`/applications/${a.id}/edit`} className="editLink">Edit</Link>
+                  <button type="button" className="iconBtn danger" onClick={() => onDelete(a.id)}>Delete</button>
+                </div>
+              </article>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </>
       )}
     </div>
   )
